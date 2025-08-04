@@ -9,6 +9,8 @@ M.config = {
   scanner = "osv", -- "osv" or "trivy"
   hide_low = false,
   upload_report = false,
+  s3_bucket = nil,
+  lambda_function = nil,
   python_tools = { "bandit", "osv" },
   javascript_tools = { "osv" }
 }
@@ -36,6 +38,10 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("SecScanSummary", function()
     M.show_last_summary()
   end, { desc = "Show security scan summary dashboard" })
+  
+  vim.api.nvim_create_user_command("SecScanUpload", function()
+    M.upload_to_aws()
+  end, { desc = "Upload security report to AWS S3 and trigger Lambda" })
 end
 
 -- Clear diagnostics
@@ -163,6 +169,22 @@ end
 function M.show_last_summary()
   local dashboard = require("nvim-secscan.dashboard")
   dashboard.show_summary(M.last_scan_results, M.config)
+end
+
+-- Upload report to AWS
+function M.upload_to_aws()
+  if not M.config.s3_bucket then
+    vim.notify("S3 bucket not configured. Set s3_bucket in setup()", vim.log.levels.ERROR)
+    return
+  end
+  
+  if not M.config.lambda_function then
+    vim.notify("Lambda function not configured. Set lambda_function in setup()", vim.log.levels.ERROR)
+    return
+  end
+  
+  local aws = require("nvim-secscan.aws")
+  aws.upload_report(M.config)
 end
 
 -- Run Bandit scan

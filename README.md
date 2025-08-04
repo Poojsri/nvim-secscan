@@ -83,17 +83,16 @@ curl --version
 
 ### CLI Command
 
-Run standalone security scanner:
+Install and run standalone security scanner:
 
 ```bash
-# Make executable
-chmod +x nvim-secscan
+# Install as system command
+./install.sh
 
-# Scan a file
-./nvim-secscan test/vulnerable_app.py
-
-# Or use Python directly
-python3 scripts/secscan-cli.py <file>
+# Use anywhere
+nvim-secscan --help
+nvim-secscan app.py
+nvim-secscan --format text app.py
 ```
 
 ### Neovim Commands
@@ -102,6 +101,7 @@ python3 scripts/secscan-cli.py <file>
 - `:SecScanClear` - Clear security diagnostics from the current buffer
 - `:SecScanReport` - Generate comprehensive project security report
 - `:SecScanSummary` - Show security scan summary dashboard
+- `:SecScanUpload` - Upload security report to AWS S3 and trigger Lambda
 
 ### Keybindings (Optional)
 
@@ -112,6 +112,7 @@ vim.keymap.set('n', '<leader>ss', ':SecScan<CR>', { desc = 'Security scan curren
 vim.keymap.set('n', '<leader>sc', ':SecScanClear<CR>', { desc = 'Clear security diagnostics' })
 vim.keymap.set('n', '<leader>sr', ':SecScanReport<CR>', { desc = 'Generate security report' })
 vim.keymap.set('n', '<leader>sd', ':SecScanSummary<CR>', { desc = 'Show security dashboard' })
+vim.keymap.set('n', '<leader>su', ':SecScanUpload<CR>', { desc = 'Upload report to AWS' })
 ```
 
 ## Configuration
@@ -125,6 +126,8 @@ require("nvim-secscan").setup({
   scanner = "osv",                 -- "osv" or "trivy"
   hide_low = false,                 -- Hide low severity issues in dashboard
   upload_report = false,            -- Future: webhook integration
+  s3_bucket = "my-security-reports", -- AWS S3 bucket for reports
+  lambda_function = "security-alert-handler", -- Lambda function for alerts
   python_tools = { "bandit", "osv" },
   javascript_tools = { "osv" }
 })
@@ -189,6 +192,25 @@ Reports include:
 - CVE details and recommendations
 - Exportable formats for CI/CD integration
 
+### 5. AWS Integration
+
+Upload reports to S3 and trigger Lambda functions:
+
+```bash
+# Setup AWS integration
+./scripts/setup-aws.sh
+
+# Generate and upload report
+:SecScanReport
+:SecScanUpload
+```
+
+**Features:**
+- Automatic S3 upload with timestamped keys
+- Lambda trigger for HIGH/CRITICAL severity issues
+- Configurable bucket and function names
+- JSON payload with severity summary
+
 ## Supported Languages
 
 ### Python
@@ -203,17 +225,18 @@ Reports include:
 
 ## Testing
 
-Test files are included in the `test/` directory:
+To test the plugin:
 
-1. Open `test/vulnerable_app.py` in Neovim
-2. Run `:SecScan`
-3. Try `:SecScanSummary` for dashboard view
-4. Generate report with `:SecScanReport`
+1. Create a Python file with security issues
+2. Add a `requirements.txt` with vulnerable packages
+3. Run `:SecScan` in Neovim or use CLI: `python nvim-secscan.py <file>`
+4. Try `:SecScanSummary` for dashboard view
+5. Generate report with `:SecScanReport`
 
 ### Expected Results
 
-- **Bandit findings**: Hardcoded secrets, unsafe pickle usage, command injection
-- **OSV.dev findings**: Vulnerable Flask, Django, and other package versions
+- **Bandit findings**: Detects insecure code patterns
+- **OSV.dev findings**: Reports vulnerable package versions
 - **Smart suggestions**: Inline recommendations for secure alternatives
 - **Dashboard**: Visual summary with severity breakdown
 

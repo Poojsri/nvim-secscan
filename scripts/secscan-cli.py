@@ -39,11 +39,16 @@ def parse_requirements(req_file):
     return packages
 
 def main():
-    if len(sys.argv) < 2:
-        print("Usage: python secscan-cli.py <file>")
-        sys.exit(1)
+    import argparse
     
-    filepath = Path(sys.argv[1])
+    parser = argparse.ArgumentParser(description="Security scanner CLI")
+    parser.add_argument("file", help="File to scan")
+    parser.add_argument("--format", choices=["json", "text"], default="json")
+    parser.add_argument("--deps-only", action="store_true", help="Only scan dependencies")
+    
+    args = parser.parse_args()
+    
+    filepath = Path(args.file)
     results = {"vulnerabilities": [], "code_issues": []}
     
     if filepath.suffix == ".py":
@@ -60,17 +65,44 @@ def main():
                             "summary": vuln.get("summary")
                         })
         
-        # Scan code
-        bandit_data = scan_with_bandit(str(filepath))
-        if bandit_data and bandit_data.get("results"):
-            for issue in bandit_data["results"]:
-                results["code_issues"].append({
-                    "line": issue.get("line_number"),
-                    "test_id": issue.get("test_id"),
-                    "text": issue.get("issue_text")
-                })
+        # Scan code (if not deps-only)
+        if not args.deps_only:
+            bandit_data = scan_with_bandit(str(filepath))
+            if bandit_data and bandit_data.get("results"):
+                for issue in bandit_data["results"]:
+                    results["code_issues"].append({
+                        "line": issue.get("line_number"),
+                        "test_id": issue.get("test_id"),
+                        "severity": issue.get("issue_severity"),
+                        "text": issue.get("issue_text")
+                    })
     
-    print(json.dumps(results, indent=2))
+    # Output results
+    if args.format == "json":
+        print(json.dumps(results, indent=2))
+    else:
+        total_issues = len(results["vulnerabilities"]) + len(results["code_issues"])
+        print(f"Security Scan Results for {filepath.name}")
+        print("=" * 50)
+        
+        if results["vulnerabilities"]:
+            print(f"\nDependency Vulnerabilities ({len(results['vulnerabilities'])}):")
+            for vuln in results["vulnerabilities"]:
+                print(f"  - {vuln['package']} - {vuln['id']}")
+                if vuln['summary']:
+                    print(f"    {vuln['summary']}")
+        
+        if results["code_issues"] and not args.deps_only:
+            print(f"\nCode Issues ({len(results['code_issues'])}):")
+            for issue in results["code_issues"]:
+                print(f"  - Line {issue['line']}: {issue['text']}")
+                if issue.get('severity'):
+                    print(f"    Severity: {issue['severity']}, Test: {issue['test_id']}")
+        
+        if total_issues == 0:
+            print("\n[OK] No security issues found!")
+        else:
+            print(f"\n[WARNING] Found {total_issues} security issue(s)")
 
 if __name__ == "__main__":
     main()
