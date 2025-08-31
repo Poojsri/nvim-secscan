@@ -1,0 +1,211 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: 'Deploy nvim-secscan on EC2 with Neovim and security tools'
+
+Parameters:
+  InstanceType:
+    Type: String
+    Default: t3.micro
+    AllowedValues: [t3.micro, t3.small, t3.medium]
+    Description: EC2 instance type
+  
+  KeyPairName:
+    Type: AWS::EC2::KeyPair::KeyName
+    Description: EC2 Key Pair for SSH access
+  
+  GitHubToken:
+    Type: String
+    NoEcho: true
+    Description: GitHub token for Security Advisory API (optional)
+    Default: ""
+
+Resources:
+  # Security Group
+  SecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for nvim-secscan EC2
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: SSH access
+      Tags:
+        - Key: Name
+          Value: nvim-secscan-sg
+
+  # IAM Role for EC2
+  EC2Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonS3FullAccess
+        - arn:aws:iam::aws:policy/AWSLambdaRole
+      Tags:
+        - Key: Name
+          Value: nvim-secscan-role
+
+  # Instance Profile
+  InstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref EC2Role
+
+  # S3 Bucket for Reports
+  ReportsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'nvim-secscan-reports-${AWS::AccountId}-${AWS::Region}'
+      VersioningConfiguration:
+        Status: Enabled
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+      Tags:
+        - Key: Name
+          Value: nvim-secscan-reports
+
+  # Lambda Function for Alerts
+  AlertLambda:
+    Type: AWS::Lambda::Function
+    Properties:
+      FunctionName: nvim-secscan-alert-handler
+      Runtime: python3.9
+      Handler: index.lambda_handler
+      Role: !GetAtt LambdaRole.Arn
+      Code:
+        ZipFile: |
+          import json
+          import boto3
+          
+          def lambda_handler(event, context):
+              print(f"Security Alert: {event.get('total_issues', 0)} issues found")
+              print(f"Project: {event.get('project', 'unknown')}")
+              print(f"Severity: {event.get('severity', 'unknown')}")
+              
+              return {
+                  'statusCode': 200,
+                  'body': json.dumps('Alert processed successfully')
+              }
+      Tags:
+        - Key: Name
+          Value: nvim-secscan-alert
+
+  # Lambda Role
+  LambdaRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+
+  # EC2 Instance
+  EC2Instance:
+    Type: AWS::EC2::Instance
+    Properties:
+      ImageId: ami-0c02fb55956c7d316  # Amazon Linux 2 AMI
+      InstanceType: !Ref InstanceType
+      KeyName: !Ref KeyPairName
+      SecurityGroupIds:
+        - !Ref SecurityGroup
+      IamInstanceProfile: !Ref InstanceProfile
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          yum update -y
+          
+          # Install dependencies
+          yum install -y git curl python3 python3-pip nodejs npm unzip
+          
+          # Install Neovim
+          curl -LO https://github.com/neovim/neovim/releases/latest/download/nvim.appimage
+          chmod u+x nvim.appimage
+          mv nvim.appimage /usr/local/bin/nvim
+          
+          # Install AWS CLI v2
+          curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+          unzip awscliv2.zip
+          ./aws/install
+          
+          # Install security tools
+          pip3 install bandit requests
+          
+          # Install Trivy
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b /usr/local/bin
+          
+          # Set environment variables
+          echo "export S3_BUCKET=${ReportsBucket}" >> /home/ec2-user/.bashrc
+          echo "export LAMBDA_FUNCTION=${AlertLambda}" >> /home/ec2-user/.bashrc
+          echo "export GITHUB_TOKEN=${GitHubToken}" >> /home/ec2-user/.bashrc
+          
+          # Create setup script
+          cat > /home/ec2-user/setup-nvim-secscan.sh << 'EOF'
+          #!/bin/bash
+          cd /home/ec2-user
+          
+          # Clone nvim-secscan (replace with your repo)
+          git clone https://github.com/yourusername/nvim-secscan.git
+          cd nvim-secscan
+          
+          # Install nvim-secscan
+          chmod +x install.sh
+          ./install.sh
+          
+          # Create Neovim config
+          mkdir -p ~/.config/nvim
+          cat > ~/.config/nvim/init.lua << 'NVIM_EOF'
+          require("nvim-secscan").setup({
+            s3_bucket = os.getenv("S3_BUCKET"),
+            lambda_function = os.getenv("LAMBDA_FUNCTION"),
+            use_github_advisory = true,
+            github_token = "env:GITHUB_TOKEN"
+          })
+          NVIM_EOF
+          
+          echo "nvim-secscan setup complete!"
+          echo "Usage: nvim-secscan --help"
+          EOF
+          
+          chmod +x /home/ec2-user/setup-nvim-secscan.sh
+          chown ec2-user:ec2-user /home/ec2-user/setup-nvim-secscan.sh
+      
+      Tags:
+        - Key: Name
+          Value: nvim-secscan-instance
+
+Outputs:
+  InstanceId:
+    Description: EC2 Instance ID
+    Value: !Ref EC2Instance
+  
+  PublicIP:
+    Description: Public IP address
+    Value: !GetAtt EC2Instance.PublicIp
+  
+  SSHCommand:
+    Description: SSH command to connect
+    Value: !Sub 'ssh -i ${KeyPairName}.pem ec2-user@${EC2Instance.PublicIp}'
+  
+  S3Bucket:
+    Description: S3 bucket for reports
+    Value: !Ref ReportsBucket
+  
+  LambdaFunction:
+    Description: Lambda function for alerts
+    Value: !Ref AlertLambda

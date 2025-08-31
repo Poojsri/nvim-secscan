@@ -229,7 +229,7 @@ To test the plugin:
 
 1. Create a Python file with security issues
 2. Add a `requirements.txt` with vulnerable packages
-3. Run `:SecScan` in Neovim or use CLI: `python nvim-secscan.py <file>`
+3. Run `:SecScan` in Neovim or use CLI: `nvim-secscan <file>`
 4. Try `:SecScanSummary` for dashboard view
 5. Generate report with `:SecScanReport`
 
@@ -340,7 +340,7 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 #### 1. **ASCII Art CLI Command**
 ```bash
-python nvim-secscan.py <file>
+nvim-secscan <file>
 ```
 Shows professional banner with Windows compatibility fallback.
 
@@ -381,7 +381,7 @@ nvim-secscan/
 ### 🎯 **Ready for Production:**
 
 1. **Neovim Plugin**: Copy to `~/.config/nvim/` or use package manager
-2. **Standalone CLI**: `python nvim-secscan.py <file>`
+2. **Standalone CLI**: `nvim-secscan <file>`
 3. **Git Integration**: `./install-hooks.sh` for pre-commit scanning
 4. **GitHub Ready**: Complete with MIT license and documentation
 
@@ -392,4 +392,43 @@ nvim-secscan/
 - **Real API Integration**: Live vulnerability data from OSV.dev
 - **Cross-Platform**: Works on Windows, Linux, macOS
 - **Enterprise Ready**: Comprehensive reporting and CI/CD integration
+
+## ☁️ Cloud Deployment
+
+### AWS EC2 Deployment
+
+#### Option 1: CloudFormation
+```bash
+cd deploy
+./deploy-cloudformation.sh
+```
+
+#### Option 2: Terraform
+```bash
+cd deploy
+./deploy-terraform.sh
+```
+
+#### Option 3: Docker
+```bash
+cd deploy/docker
+docker-compose up -d
+docker exec -it nvim-secscan bash
+```
+
+### What Gets Deployed:
+- **EC2 Instance** with Neovim, Python, Node.js
+- **Security Tools**: Bandit, Trivy, AWS CLI
+- **S3 Bucket** for security reports
+- **Lambda Function** for alert handling
+- **IAM Roles** with proper permissions
+- **nvim-secscan** pre-installed and configured
+
+### Post-Deployment:
+1. SSH to EC2 instance
+2. Run `./setup-nvim-secscan.sh`
+3. Test: `nvim-secscan --help`
+4. Use in Neovim: `:SecScan`, `:SecScanReport`, `:SecScanUpload`
+
+The `nvim-secscan` plugin is now **production-ready** and **cloud-deployable**! 🚀
 
