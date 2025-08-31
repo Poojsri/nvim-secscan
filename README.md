@@ -1,9 +1,9 @@
 # nvim-secscan
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub issues](https://img.shields.io/github/issues/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/issues)
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/network)
+[![GitHub issues](https://img.shields.io/github/issues/Poojsri/nvim-secscan)](https://github.com/Poojsri/nvim-secscan/issues)
+[![GitHub stars](https://img.shields.io/github/stars/Poojsri/nvim-secscan)](https://github.com/Poojsri/nvim-secscan/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Poojsri/nvim-secscan)](https://github.com/Poojsri/nvim-secscan/network)
 
 A Neovim plugin for scanning code files for security vulnerabilities and insecure patterns.
 
