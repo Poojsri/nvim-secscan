@@ -1,5 +1,10 @@
 # nvim-secscan
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![GitHub issues](https://img.shields.io/github/issues/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/issues)
+[![GitHub stars](https://img.shields.io/github/stars/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/network)
+
 A Neovim plugin for scanning code files for security vulnerabilities and insecure patterns.
 
 ## Features
@@ -268,10 +273,27 @@ trivy fs --format json /path/to/project
 
 ## Contributing
 
+We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+
+### Quick Start for Contributors
+
 1. Fork the repository
-2. Create a feature branch
-3. Add tests for new functionality
-4. Submit a pull request
+2. Create a feature branch: `git checkout -b feature/amazing-feature`
+3. Make your changes and test thoroughly
+4. Commit your changes: `git commit -m 'Add amazing feature'`
+5. Push to the branch: `git push origin feature/amazing-feature`
+6. Open a Pull Request
+
+### Areas for Contribution
+
+- 🔍 **New Language Support**: Add support for Rust, Go, Java, PHP
+- 🛡️ **Security Scanners**: Integrate additional security tools
+- 🤖 **AI Features**: Implement ML-based vulnerability analysis
+- 📊 **Reporting**: Enhance report formats and visualizations
+- 🌐 **Cloud Integration**: Add support for other cloud providers
+- 📚 **Documentation**: Improve guides and examples
+
+See our [GitHub Issues](https://github.com/yourusername/nvim-secscan/issues) for specific tasks.
 
 ## License
 
