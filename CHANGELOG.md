@@ -2,8 +2,7 @@
 
 All notable changes to nvim-secscan will be documented in this file.
 
-## [1.1.0] - 2024-01-XX
-
+## [1.1.0] 
 ### Added
 - 🚀 **Performance Benchmarking**: Hyperfine-style benchmarking for scanners and code execution
 - ⚡ **New Commands**: `:SecScanBenchmark` and `:SecScanBenchmarkCode`
