@@ -1,9 +1,9 @@
 # nvim-secscan
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub issues](https://img.shields.io/github/issues/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/issues)
-[![GitHub stars](https://img.shields.io/github/stars/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/stargazers)
-[![GitHub forks](https://img.shields.io/github/forks/yourusername/nvim-secscan)](https://github.com/yourusername/nvim-secscan/network)
+[![GitHub issues](https://img.shields.io/github/issues/Poojsri/nvim-secscan)](https://github.com/Poojsri/nvim-secscan/issues)
+[![GitHub stars](https://img.shields.io/github/stars/Poojsri/nvim-secscan)](https://github.com/Poojsri/nvim-secscan/stargazers)
+[![GitHub forks](https://img.shields.io/github/forks/Poojsri/nvim-secscan)](https://github.com/Poojsri/nvim-secscan/network)
 
 A Neovim plugin for scanning code files for security vulnerabilities and insecure patterns.
 
@@ -107,6 +107,8 @@ nvim-secscan --format text app.py
 - `:SecScanReport` - Generate comprehensive project security report
 - `:SecScanSummary` - Show security scan summary dashboard
 - `:SecScanUpload` - Upload security report to AWS S3 and trigger Lambda
+- `:SecScanBenchmark` - Benchmark security scanner performance
+- `:SecScanBenchmarkCode` - Benchmark code execution performance
 
 ### Keybindings (Optional)
 
@@ -118,6 +120,8 @@ vim.keymap.set('n', '<leader>sc', ':SecScanClear<CR>', { desc = 'Clear security 
 vim.keymap.set('n', '<leader>sr', ':SecScanReport<CR>', { desc = 'Generate security report' })
 vim.keymap.set('n', '<leader>sd', ':SecScanSummary<CR>', { desc = 'Show security dashboard' })
 vim.keymap.set('n', '<leader>su', ':SecScanUpload<CR>', { desc = 'Upload report to AWS' })
+vim.keymap.set('n', '<leader>sb', ':SecScanBenchmark<CR>', { desc = 'Benchmark scanners' })
+vim.keymap.set('n', '<leader>se', ':SecScanBenchmarkCode<CR>', { desc = 'Benchmark code execution' })
 ```
 
 ## Configuration
@@ -215,6 +219,30 @@ Upload reports to S3 and trigger Lambda functions:
 - Lambda trigger for HIGH/CRITICAL severity issues
 - Configurable bucket and function names
 - JSON payload with severity summary
+
+### 6. Performance Benchmarking
+
+Benchmark scanner performance and code execution:
+
+```bash
+:SecScanBenchmark      # Compare scanner speeds
+:SecScanBenchmarkCode  # Benchmark code execution
+```
+
+**Sample Output:**
+```
+Scanner Performance Comparison:
+--------------------------------------------------
+1. nvim-secscan: 1180.454 ms ± 17.262 ms (FASTEST)
+2. bandit: 2340.123 ms ± 45.678 ms (1.98x slower)
+3. trivy: 3456.789 ms ± 89.012 ms (2.94x slower)
+```
+
+**Features:**
+- Hyperfine-style statistical analysis
+- Cross-platform compatibility
+- Multiple warmup and benchmark runs
+- Floating window results display
 
 ## Supported Languages
 

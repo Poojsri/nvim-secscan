@@ -42,6 +42,14 @@ function M.setup(opts)
   vim.api.nvim_create_user_command("SecScanUpload", function()
     M.upload_to_aws()
   end, { desc = "Upload security report to AWS S3 and trigger Lambda" })
+  
+  vim.api.nvim_create_user_command("SecScanBenchmark", function()
+    M.benchmark_scanners()
+  end, { desc = "Benchmark security scanner performance" })
+  
+  vim.api.nvim_create_user_command("SecScanBenchmarkCode", function()
+    M.benchmark_code_execution()
+  end, { desc = "Benchmark code execution performance" })
 end
 
 -- Clear diagnostics
@@ -185,6 +193,36 @@ function M.upload_to_aws()
   
   local aws = require("nvim-secscan.aws")
   aws.upload_report(M.config)
+end
+
+-- Benchmark security scanners
+function M.benchmark_scanners()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local filepath = vim.api.nvim_buf_get_name(bufnr)
+  
+  if filepath == "" then
+    vim.notify("No file open", vim.log.levels.WARN)
+    return
+  end
+  
+  local benchmark = require("nvim-secscan.benchmark")
+  local results = benchmark.benchmark_scanners(filepath)
+  benchmark.show_benchmark_results(results, "Scanner Performance Comparison")
+end
+
+-- Benchmark code execution
+function M.benchmark_code_execution()
+  local bufnr = vim.api.nvim_get_current_buf()
+  local filepath = vim.api.nvim_buf_get_name(bufnr)
+  
+  if filepath == "" then
+    vim.notify("No file open", vim.log.levels.WARN)
+    return
+  end
+  
+  local benchmark = require("nvim-secscan.benchmark")
+  local results = benchmark.benchmark_code_execution(filepath)
+  benchmark.show_benchmark_results(results, "Code Execution Performance")
 end
 
 -- Run Bandit scan
