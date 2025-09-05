@@ -7,6 +7,9 @@
 
 A Neovim plugin for scanning code files for security vulnerabilities and insecure patterns.
 
+> 📦 Current Release: v1.0.0
+![GitHub release (latest SemVer)](https://img.shields.io/github/v/release/Poojsri/nvim-secscan)
+
 ## Features
 
 - 🔍 **Multi-Scanner Support**: Choose between OSV.dev API or Trivy for vulnerability scanning
